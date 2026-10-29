@@ -1,0 +1,6 @@
+{
+  "name": "Meu Doador",
+  "description": "Aplicativo para organizar, acompanhar e registrar doações de sangue com histórico, cálculo de elegibilidade, cartão de doador e exportação de projeto Android Jetpack Compose.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
