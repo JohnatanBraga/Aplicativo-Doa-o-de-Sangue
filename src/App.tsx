@@ -112,6 +112,7 @@ export default function App() {
 
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authInitialRegister, setAuthInitialRegister] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<DonationRecord | null>(null);
@@ -161,6 +162,7 @@ export default function App() {
   const handleSplashFinish = () => {
     setShowSplash(false);
     if (!profile) {
+      setAuthInitialRegister(false);
       setIsAuthOpen(true);
     } else if (!profile.tutorialConcluido) {
       setIsTutorialOpen(true);
@@ -184,15 +186,17 @@ export default function App() {
     setDonations([]);
     setReminders([]);
     setWeightHistory([]);
+    setAuthInitialRegister(false);
     setIsAuthOpen(true);
   };
 
-  // Account Deleted
+  // Account Deleted: Redireciona para login/cadastro permitindo criar conta nova
   const handleAccountDeleted = () => {
     setProfile(null);
     setDonations([]);
     setReminders([]);
     setWeightHistory([]);
+    setAuthInitialRegister(true);
     setIsAuthOpen(true);
   };
 
@@ -268,11 +272,8 @@ export default function App() {
           themeMode={themeMode}
           isDark={isDarkActive}
           onToggleTheme={handleToggleTheme}
-          onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
           onOpenCalendarModal={() => setIsCalendarOpen(true)}
           onGoToProfile={() => handleSelectTab('profile')}
-          isSimulatedDevice={isSimulatedDevice}
-          onToggleDeviceSimulation={() => setIsSimulatedDevice(!isSimulatedDevice)}
         />
 
         {/* Transição Suave com Eletrocardiograma */}
@@ -326,6 +327,7 @@ export default function App() {
                 if (profile) setWeightHistory(getWeightHistory(profile.uid));
               }}
               onReopenTutorial={() => setIsTutorialOpen(true)}
+              onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
               onLogout={handleLogout}
               onAccountDeleted={handleAccountDeleted}
             />
@@ -340,6 +342,7 @@ export default function App() {
       {/* Autenticação & Cadastro */}
       <AuthModal
         isOpen={isAuthOpen}
+        initialRegister={authInitialRegister}
         onSuccess={handleAuthSuccess}
       />
 

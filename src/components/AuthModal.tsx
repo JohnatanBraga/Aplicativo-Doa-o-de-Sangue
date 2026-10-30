@@ -10,11 +10,16 @@ import { UserProfile } from '../types';
 
 interface AuthModalProps {
   isOpen: boolean;
+  initialRegister?: boolean;
   onSuccess: (profile: UserProfile, isNewUser: boolean) => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
-  const [isRegistering, setIsRegistering] = useState(false);
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  initialRegister = false,
+  onSuccess,
+}) => {
+  const [isRegistering, setIsRegistering] = useState(initialRegister);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
 
   // Campos
@@ -27,6 +32,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Sincronizar se foi aberto para cadastro ou login
+  React.useEffect(() => {
+    if (isOpen) {
+      setIsRegistering(initialRegister);
+      setIsForgotPassword(false);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+      setPassword('');
+      setConfirmPassword('');
+    }
+  }, [isOpen, initialRegister]);
 
   if (!isOpen) return null;
 
@@ -116,7 +133,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
         <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#D95757] via-[#BDE8F0] to-[#DCECCB]" />
 
         {/* Brand Header */}
-        <div className="flex flex-col items-center text-center mb-6 pt-2">
+        <div className="flex flex-col items-center text-center mb-4 pt-2">
           <div className="w-14 h-14 rounded-2xl bg-[#F5D9D5] dark:bg-[#3D1E1E] flex items-center justify-center text-[#D95757] dark:text-[#F57070] mb-3 shadow-inner">
             <Heart className="w-7 h-7 fill-current" />
           </div>
@@ -135,6 +152,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
               : 'Acesse suas doações, cartão e estimativas'}
           </p>
         </div>
+
+        {/* Abas Alternadoras no Topo (Criar Nova Conta vs Fazer Login) */}
+        {!isForgotPassword && (
+          <div className="flex rounded-2xl bg-[#F7F7F5] dark:bg-[#25252B] p-1 mb-4 border border-[#E9E9E6] dark:border-[#2E2E36]">
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegistering(true);
+                setErrorMsg(null);
+                setSuccessMsg(null);
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                isRegistering
+                  ? 'bg-white dark:bg-[#1A1A1E] text-[#D95757] dark:text-[#F87171] shadow-xs'
+                  : 'text-[#777777] dark:text-[#A0A0A5] hover:text-[#242424]'
+              }`}
+            >
+              Criar Nova Conta
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegistering(false);
+                setErrorMsg(null);
+                setSuccessMsg(null);
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                !isRegistering
+                  ? 'bg-white dark:bg-[#1A1A1E] text-[#242424] dark:text-white shadow-xs'
+                  : 'text-[#777777] dark:text-[#A0A0A5] hover:text-[#242424]'
+              }`}
+            >
+              Fazer Login
+            </button>
+          </div>
+        )}
 
         {/* Feedback Messages */}
         {errorMsg && (

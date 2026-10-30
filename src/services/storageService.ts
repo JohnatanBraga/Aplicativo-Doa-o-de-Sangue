@@ -177,6 +177,19 @@ export function getProfile(userId: string): UserProfile | null {
 
 export function saveProfile(profile: UserProfile): void {
   localStorage.setItem(`meu_doador_profile_${profile.uid}`, JSON.stringify(profile));
+  
+  // Sincronizar nome e email no registro geral de contas (ACCOUNTS_KEY)
+  try {
+    const accounts = getAccounts();
+    const index = accounts.findIndex(a => a.uid === profile.uid || a.email.toLowerCase() === profile.email.toLowerCase());
+    if (index >= 0) {
+      accounts[index].nome = profile.nome.trim();
+      accounts[index].email = profile.email.trim().toLowerCase();
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+    }
+  } catch (err) {
+    console.error('Erro ao sincronizar conta:', err);
+  }
 }
 
 // ----------------- DOAÇÕES -----------------
@@ -368,9 +381,12 @@ export function deleteReminder(userId: string, reminderId: string): void {
 
 // ----------------- EXCLUSÃO TOTAL DA CONTA -----------------
 
-export async function deleteFullAccount(userId: string): Promise<void> {
+export async function deleteFullAccount(userId: string, userEmail?: string): Promise<void> {
   const accounts = getAccounts();
-  const updatedAccounts = accounts.filter(a => a.uid !== userId);
+  const emailNorm = userEmail ? userEmail.trim().toLowerCase() : '';
+  const updatedAccounts = accounts.filter(
+    a => a.uid !== userId && (!emailNorm || a.email.toLowerCase() !== emailNorm)
+  );
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(updatedAccounts));
 
   localStorage.removeItem(`meu_doador_profile_${userId}`);
@@ -379,11 +395,13 @@ export async function deleteFullAccount(userId: string): Promise<void> {
   localStorage.removeItem(`meu_doador_reminders_${userId}`);
   localStorage.removeItem(`meu_doador_card_${userId}`);
 
-  await deleteDonorCard(userId);
-
-  if (getCurrentUserUid() === userId) {
-    setCurrentUserUid(null);
+  try {
+    await deleteDonorCard(userId);
+  } catch (err) {
+    console.error('Erro ao deletar cartão:', err);
   }
+
+  setCurrentUserUid(null);
 }
 
 // ----------------- CRIAÇÃO DE DADOS DE AMOSTRA INICIAIS -----------------
@@ -404,8 +422,11 @@ export function seedDemoDataIfEmpty(): UserProfile {
     }
   }
 
-  // Cria usuário demonstrativo inicial com dados reais de doador
+  // Se a conta de demonstração já existir, remove para recriar sem erro de duplicidade
   const demoEmail = 'doador@exemplo.com';
+  const cleanAccounts = accounts.filter(a => a.email.toLowerCase() !== demoEmail);
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(cleanAccounts));
+
   const demoUser = registerUser('Jonatas Braga', demoEmail, '123456');
 
   demoUser.hemocentroReferencia = 'HEMOMAR - Centro de Hematologia e Hemoterapia do Maranhão';

@@ -35,6 +35,7 @@ interface ProfileViewProps {
   onUpdateProfile: (updated: UserProfile) => void;
   onRefreshWeight: () => void;
   onReopenTutorial: () => void;
+  onOpenAndroidModal?: () => void;
   onLogout: () => void;
   onAccountDeleted: () => void;
 }
@@ -48,6 +49,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onUpdateProfile,
   onRefreshWeight,
   onReopenTutorial,
+  onOpenAndroidModal,
   onLogout,
   onAccountDeleted,
 }) => {
@@ -62,6 +64,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [tipoSanguineo, setTipoSanguineo] = useState<BloodType>(profile.tipoSanguineo || 'O+');
   const [fatorRh, setFatorRh] = useState<'+' | '-' | 'desconhecido'>(profile.fatorRh || '+');
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Sincronizar campos locais caso o perfil seja atualizado externamente
+  React.useEffect(() => {
+    if (profile) {
+      setNome(profile.nome);
+      setDataNascimento(profile.dataNascimento || '');
+      setGenero(profile.genero || 'M');
+      setCidade(profile.cidade || 'São Luís');
+      setEstado(profile.estado || 'MA');
+      setHemocentro(profile.hemocentroReferencia || 'HEMOMAR - São Luís');
+      setTipoSanguineo(profile.tipoSanguineo || 'O+');
+      setFatorRh(profile.fatorRh || '+');
+    }
+  }, [profile]);
 
   // Novo registro de peso
   const [novoPeso, setNovoPeso] = useState('');
@@ -111,7 +127,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const handleExecuteDeleteAccount = async () => {
     if (deleteTypedConfirm !== 'EXCLUIR') return;
-    await deleteFullAccount(profile.uid);
+    await deleteFullAccount(profile.uid, profile.email);
+    setConfirmDelete(false);
     onAccountDeleted();
   };
 
@@ -461,6 +478,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <span className="text-[11px] text-[#777777] dark:text-[#9CA3AF]">7 passos</span>
           </button>
+
+          {/* Exportar Projeto Android Studio (APK) */}
+          {onOpenAndroidModal && (
+            <button
+              onClick={onOpenAndroidModal}
+              className="w-full p-3 rounded-2xl bg-[#DCECCB]/60 dark:bg-[#1E3825]/60 hover:bg-[#DCECCB] dark:hover:bg-[#1E3825] text-left flex items-center justify-between transition-colors border border-[#DCECCB] dark:border-[#2E4A23]"
+            >
+              <div className="flex items-center gap-2.5">
+                <Shield className="w-4 h-4 text-[#2d4d1e] dark:text-[#86EFAC]" />
+                <span className="font-semibold text-[#2d4d1e] dark:text-[#86EFAC]">
+                  Exportar Projeto Android Studio (APK)
+                </span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#2d4d1e] text-white">
+                ZIP
+              </span>
+            </button>
+          )}
 
           {/* Sair da Conta (Logout) */}
           <button

@@ -47,6 +47,7 @@ export const DonationsView: React.FC<DonationsViewProps> = ({
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<'all' | DonationCategory>('all');
   const [viewMode, setViewMode] = useState<'list' | 'stats'>('list');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Modais de detalhe e exclusão
   const [donationToView, setDonationToView] = useState<DonationRecord | null>(null);
@@ -178,6 +179,22 @@ export const DonationsView: React.FC<DonationsViewProps> = ({
             </button>
           </div>
 
+          {/* Botão de Filtro e Busca (Aparece somente quando clicado) */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${
+              showFilters || searchTerm || selectedCategory !== 'all' || selectedYear !== 'all'
+                ? 'bg-[#242424] dark:bg-[#F3F4F6] text-white dark:text-[#121214] shadow-sm'
+                : 'bg-[#F7F7F5] dark:bg-[#202026] text-[#777777] dark:text-[#9CA3AF] border border-[#E9E9E6] dark:border-[#2E2E36] hover:bg-[#E9E9E6]'
+            }`}
+            title={showFilters ? 'Ocultar filtros e busca' : 'Exibir filtros e busca'}
+          >
+            <Filter className="w-4 h-4" />
+            {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all') && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D95757]" />
+            )}
+          </button>
+
           {/* Adicionar Doação */}
           <button
             onClick={onOpenNewDonationModal}
@@ -189,89 +206,91 @@ export const DonationsView: React.FC<DonationsViewProps> = ({
         </div>
       </div>
 
-      {/* FILTROS E BUSCA */}
-      <div className="bg-[#FFFFFF] dark:bg-[#1A1A1E] p-3 rounded-[24px] border border-[#E9E9E6] dark:border-[#2E2E36] space-y-2.5 shadow-xs">
-        {/* Campo de Busca */}
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#777777] dark:text-[#9CA3AF]" />
-          <input
-            type="text"
-            placeholder="Buscar por destinatário, hospital ou hemocentro..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#F7F7F5] dark:bg-[#232329] border border-[#E9E9E6] dark:border-[#2E2E36] text-xs text-[#242424] dark:text-[#F3F4F6] focus:outline-none focus:border-[#D95757] transition-all"
-          />
-        </div>
+      {/* FILTROS E BUSCA (Somente se clicar no ícone de filtro) */}
+      {showFilters && (
+        <div className="bg-[#FFFFFF] dark:bg-[#1A1A1E] p-3 rounded-[24px] border border-[#E9E9E6] dark:border-[#2E2E36] space-y-2.5 shadow-xs animate-fadeIn">
+          {/* Campo de Busca */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#777777] dark:text-[#9CA3AF]" />
+            <input
+              type="text"
+              placeholder="Buscar por destinatário, hospital ou hemocentro..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#F7F7F5] dark:bg-[#232329] border border-[#E9E9E6] dark:border-[#2E2E36] text-xs text-[#242424] dark:text-[#F3F4F6] focus:outline-none focus:border-[#D95757] transition-all"
+            />
+          </div>
 
-        {/* Filtro por Categoria: Todas / Voluntárias / Destinadas */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
-              selectedCategory === 'all'
-                ? 'bg-[#242424] dark:bg-[#F3F4F6] text-white dark:text-[#121214]'
-                : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
-            }`}
-          >
-            Todas ({donations.length})
-          </button>
-          <button
-            onClick={() => setSelectedCategory('voluntaria')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
-              selectedCategory === 'voluntaria'
-                ? 'bg-[#DCECCB] dark:bg-[#1E3825] text-[#1E3E17] dark:text-[#86EFAC] ring-2 ring-[#A8C98B]'
-                : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Voluntárias ({countVoluntarias})</span>
-          </button>
-          <button
-            onClick={() => setSelectedCategory('destinada')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
-              selectedCategory === 'destinada'
-                ? 'bg-[#BDE8F0] dark:bg-[#1A363D] text-[#133B44] dark:text-[#7DD3FC] ring-2 ring-[#7DC4D3]'
-                : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
-            }`}
-          >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Destinadas ({countDestinadas})</span>
-          </button>
-        </div>
-
-        {/* Filtro por Ano */}
-        {availableYears.length > 0 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-[#E9E9E6]/60 dark:border-[#2E2E36]/60 text-xs">
-            <span className="text-[#777777] dark:text-[#9CA3AF] font-semibold text-[11px] shrink-0 flex items-center gap-1">
-              <Filter className="w-3 h-3" />
-              Ano:
-            </span>
+          {/* Filtro por Categoria: Todas / Voluntárias / Destinadas */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
             <button
-              onClick={() => setSelectedYear('all')}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all shrink-0 ${
-                selectedYear === 'all'
-                  ? 'bg-gray-300 dark:bg-gray-700 text-[#242424] dark:text-white'
-                  : 'text-[#777777] dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-gray-800'
+              onClick={() => setSelectedCategory('all')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
+                selectedCategory === 'all'
+                  ? 'bg-[#242424] dark:bg-[#F3F4F6] text-white dark:text-[#121214]'
+                  : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
               }`}
             >
-              Todos
+              Todas ({donations.length})
             </button>
-            {availableYears.map((year) => (
+            <button
+              onClick={() => setSelectedCategory('voluntaria')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+                selectedCategory === 'voluntaria'
+                  ? 'bg-[#DCECCB] dark:bg-[#1E3825] text-[#1E3E17] dark:text-[#86EFAC] ring-2 ring-[#A8C98B]'
+                  : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Voluntárias ({countVoluntarias})</span>
+            </button>
+            <button
+              onClick={() => setSelectedCategory('destinada')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+                selectedCategory === 'destinada'
+                  ? 'bg-[#BDE8F0] dark:bg-[#1A363D] text-[#133B44] dark:text-[#7DD3FC] ring-2 ring-[#7DC4D3]'
+                  : 'bg-[#F7F7F5] dark:bg-[#232329] text-[#777777] dark:text-[#9CA3AF] hover:bg-[#E9E9E6]'
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Destinadas ({countDestinadas})</span>
+            </button>
+          </div>
+
+          {/* Filtro por Ano */}
+          {availableYears.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-[#E9E9E6]/60 dark:border-[#2E2E36]/60 text-xs">
+              <span className="text-[#777777] dark:text-[#9CA3AF] font-semibold text-[11px] shrink-0 flex items-center gap-1">
+                <Filter className="w-3 h-3" />
+                Ano:
+              </span>
               <button
-                key={year}
-                onClick={() => setSelectedYear(year)}
+                onClick={() => setSelectedYear('all')}
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all shrink-0 ${
-                  selectedYear === year
-                    ? 'bg-[#D95757] text-white'
+                  selectedYear === 'all'
+                    ? 'bg-gray-300 dark:bg-gray-700 text-[#242424] dark:text-white'
                     : 'text-[#777777] dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                {year} ({statsByYear[year] || 0})
+                Todos
               </button>
-            ))}
-          </div>
-        )}
-      </div>
+              {availableYears.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all shrink-0 ${
+                    selectedYear === year
+                      ? 'bg-[#D95757] text-white'
+                      : 'text-[#777777] dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {year} ({statsByYear[year] || 0})
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* VIEW: ESTATÍSTICAS E GRÁFICOS */}
       {viewMode === 'stats' && (
